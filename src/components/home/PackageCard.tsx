@@ -1,6 +1,8 @@
 import React from 'react';
 import { MapPin, Clock, Users, Star, Heart, IndianRupee } from 'lucide-react';
 import { TrekPackage } from '../../types';
+import { useWishlist } from '../../hooks/useWishlist';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface PackageCardProps {
   package: TrekPackage;
@@ -8,6 +10,37 @@ interface PackageCardProps {
 }
 
 const PackageCard: React.FC<PackageCardProps> = ({ package: pkg, onViewDetails }) => {
+  const { user } = useAuth();
+  const { addItem, removeItem, isInWishlistCheck } = useWishlist();
+  const [isInWishlist, setIsInWishlist] = React.useState(false);
+  const [wishlistLoading, setWishlistLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (user) {
+      isInWishlistCheck(pkg.id).then(setIsInWishlist);
+    }
+  }, [user, pkg.id, isInWishlistCheck]);
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) return;
+
+    setWishlistLoading(true);
+    try {
+      if (isInWishlist) {
+        await removeItem(pkg.id);
+        setIsInWishlist(false);
+      } else {
+        await addItem(pkg.id);
+        setIsInWishlist(true);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Easy':
@@ -31,8 +64,18 @@ const PackageCard: React.FC<PackageCardProps> = ({ package: pkg, onViewDetails }
           alt={pkg.title}
           className="w-full h-48 object-cover"
         />
-        <button className="absolute top-4 right-4 p-2 rounded-full bg-white bg-opacity-90 hover:bg-opacity-100 transition-all">
-          <Heart className="h-5 w-5 text-gray-600 hover:text-red-500" />
+        <button 
+          onClick={handleWishlistToggle}
+          disabled={!user || wishlistLoading}
+          className="absolute top-4 right-4 p-2 rounded-full bg-white bg-opacity-90 hover:bg-opacity-100 transition-all disabled:opacity-50"
+        >
+          <Heart 
+            className={`h-5 w-5 transition-colors ${
+              isInWishlist 
+                ? 'text-red-500 fill-current' 
+                : 'text-gray-600 hover:text-red-500'
+            }`} 
+          />
         </button>
         <div className="absolute bottom-4 left-4">
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(pkg.difficulty)}`}>

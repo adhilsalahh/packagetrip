@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, Calendar, Users, IndianRupee, CreditCard } from 'lucide-react';
 import { TrekPackage } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { useBookings } from '../../hooks/useBookings';
 
 interface BookingModalProps {
   package: TrekPackage;
@@ -10,6 +11,7 @@ interface BookingModalProps {
 
 const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) => {
   const { user } = useAuth();
+  const { createBooking } = useBookings();
   const [bookingData, setBookingData] = useState({
     startDate: '',
     groupSize: 1,
@@ -29,11 +31,33 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
 
   const handleBooking = async () => {
     setLoading(true);
-    // Simulate booking process
-    setTimeout(() => {
-      setCurrentStep('confirmation');
+    
+    try {
+      if (!user) throw new Error('User must be logged in');
+      
+      const booking = await createBooking({
+        user_id: user.id,
+        package_id: pkg.id,
+        start_date: bookingData.startDate,
+        group_size: bookingData.groupSize,
+        total_amount: totalAmount,
+        special_requests: bookingData.specialRequests || null,
+        status: 'pending',
+        payment_status: 'pending'
+      });
+      
+      // In a real app, integrate with payment gateway here
+      // For demo, we'll simulate successful payment
+      setTimeout(async () => {
+        setCurrentStep('confirmation');
+        setLoading(false);
+      }, 2000);
+      
+    } catch (error: any) {
+      console.error('Booking error:', error);
+      setError(error.message);
       setLoading(false);
-    }, 2000);
+    }
   };
 
   const renderDetailsStep = () => (

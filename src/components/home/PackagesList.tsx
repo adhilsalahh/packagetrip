@@ -2,10 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { Search, Filter, SlidersHorizontal } from 'lucide-react';
 import PackageCard from './PackageCard';
 import PackageModal from './PackageModal';
-import { samplePackages } from '../../data/sampleData';
 import { TrekPackage } from '../../types';
+import { usePackages } from '../../hooks/usePackages';
 
 const PackagesList: React.FC = () => {
+  const { packages, loading, error } = usePackages();
   const [selectedPackage, setSelectedPackage] = useState<TrekPackage | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -18,7 +19,7 @@ const PackagesList: React.FC = () => {
   });
 
   const filteredPackages = useMemo(() => {
-    let filtered = samplePackages.filter(pkg => {
+    let filtered = packages.filter(pkg => {
       const matchesSearch = pkg.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            pkg.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            pkg.location.toLowerCase().includes(searchTerm.toLowerCase());
@@ -76,7 +77,7 @@ const PackagesList: React.FC = () => {
     }
 
     return filtered;
-  }, [searchTerm, filters]);
+  }, [packages, searchTerm, filters]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({
@@ -204,26 +205,46 @@ const PackagesList: React.FC = () => {
 
           <div className="flex items-center justify-between mt-4">
             <p className="text-gray-600">
-              Showing {filteredPackages.length} of {samplePackages.length} packages
+              Showing {filteredPackages.length} of {packages.length} packages
             </p>
           </div>
         </div>
 
-        {/* Packages Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredPackages.map((pkg) => (
-            <PackageCard
-              key={pkg.id}
-              package={pkg}
-              onViewDetails={(id) => {
-                const selected = samplePackages.find(p => p.id === id);
-                setSelectedPackage(selected || null);
-              }}
-            />
-          ))}
-        </div>
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading packages...</p>
+          </div>
+        )}
 
-        {filteredPackages.length === 0 && (
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <div className="text-red-500 mb-4">
+              <p className="text-lg font-medium">Error loading packages</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Packages Grid */}
+        {!loading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPackages.map((pkg) => (
+              <PackageCard
+                key={pkg.id}
+                package={pkg}
+                onViewDetails={(id) => {
+                  const selected = packages.find(p => p.id === id);
+                  setSelectedPackage(selected || null);
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        {!loading && !error && filteredPackages.length === 0 && (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
               <Filter className="h-16 w-16 mx-auto" />

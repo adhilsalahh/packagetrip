@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mountain, User, Menu, X, Heart, MapPin, Phone, Mail } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import AuthModal from './AuthModal';
 
 const Header: React.FC = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
@@ -48,13 +50,13 @@ const Header: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
-            <div className="flex items-center space-x-2">
+            <Link to="/" className="flex items-center space-x-2">
               <Mountain className="h-8 w-8 text-green-600" />
               <div>
                 <h1 className="text-xl font-bold text-gray-900">Kerala Trekking</h1>
                 <p className="text-xs text-gray-500">God's Own Adventures</p>
               </div>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
@@ -83,9 +85,12 @@ const Header: React.FC = () => {
                     </button>
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                       <div className="py-2">
-                        <a href="#profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                        <a href="#bookings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Bookings</a>
-                        <a href="#wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Wishlist</a>
+                        <button 
+                          onClick={() => navigate('/dashboard')}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Dashboard
+                        </button>
                         <hr className="my-1" />
                         <button
                           onClick={signOut}
