@@ -92,6 +92,14 @@ const Header: React.FC = () => {
                           Dashboard
                         </button>
                         <hr className="my-1" />
+                      {user.user_metadata?.is_admin && (
+                        <button 
+                          onClick={() => navigate('/admin')}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          Admin Panel
+                        </button>
+                      )}
                         <button
                           onClick={signOut}
                           className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
