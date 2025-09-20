@@ -175,3 +175,113 @@ export const bookAvailableDate = async (packageId: string, date: string): Promis
 
   if (error) throw error;
 };
+
+// Admin authentication
+export const authenticateAdmin = async (email: string, password: string) => {
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('*')
+    .eq('email', email)
+    .eq('is_active', true)
+    .single();
+
+  if (error || !data) {
+    throw new Error('Invalid credentials');
+  }
+
+  // In production, use proper password hashing verification
+  // For demo, we'll use simple comparison
+  if (email === 'adhilsalahhk@gmail.com' && password === 'As12345') {
+    return data;
+  }
+
+  throw new Error('Invalid credentials');
+};
+
+// Get booking with message logs
+export const getBookingWithMessages = async (bookingId: string) => {
+  const { data: booking, error: bookingError } = await supabase
+    .from('bookings')
+    .select(`
+      *,
+      profiles!bookings_user_id_fkey (
+        id,
+        name,
+        email,
+        phone
+      ),
+      trek_packages!bookings_package_id_fkey (
+        id,
+        title,
+        location,
+        duration,
+        difficulty,
+        price
+      )
+    `)
+    .eq('id', bookingId)
+    .single();
+
+  if (bookingError) throw bookingError;
+
+  const { data: messages, error: messagesError } = await supabase
+    .from('message_logs')
+    .select('*')
+    .eq('booking_id', bookingId)
+    .order('sent_at', { ascending: false });
+
+  if (messagesError) throw messagesError;
+
+  return {
+    ...booking,
+    messages: messages || []
+  };
+};
+
+// Bulk booking operations
+export const bulkUpdateBookingStatus = async (
+  bookingIds: string[],
+  status: string,
+  sendNotifications: boolean = true
+): Promise<void> => {
+  const { error } = await supabase
+    .from('bookings')
+    .update({ 
+      status,
+      updated_at: new Date().toISOString()
+    })
+    .in('id', bookingIds);
+
+  if (error) throw error;
+
+  // Send notifications if requested
+  if (status === 'confirmed' && sendNotifications) {
+    for (const bookingId of bookingIds) {
+      try {
+        await sendBookingConfirmation(bookingId);
+      } catch (error) {
+        console.error(`Failed to send confirmation for booking ${bookingId}:`, error);
+      }
+    }
+  }
+};
+
+// Get message statistics
+export const getMessageStats = async () => {
+  const { data, error } = await supabase
+    .from('message_logs')
+    .select('type, status, sent_at');
+
+  if (error) throw error;
+
+  const stats = {
+    total: data.length,
+    whatsapp: data.filter(m => m.type === 'whatsapp').length,
+    email: data.filter(m => m.type === 'email').length,
+    sent: data.filter(m => m.status === 'sent').length,
+    failed: data.filter(m => m.status === 'failed').length,
+    delivered: data.filter(m => m.status === 'delivered').length
+  };
+
+  return stats;
+};

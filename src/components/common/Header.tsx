@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mountain, User, Menu, X, Heart, MapPin, Phone, Mail } from 'lucide-react';
+import { Mountain, User, Menu, X, Heart, MapPin, Phone, Mail, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import AuthModal from './AuthModal';
 
@@ -9,12 +9,14 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'admin'>('signin');
 
-  const handleAuthClick = (mode: 'signin' | 'signup') => {
+  const handleAuthClick = (mode: 'signin' | 'signup' | 'admin') => {
     setAuthMode(mode);
     setShowAuthModal(true);
   };
+
+  const isAdmin = user?.email === 'adhilsalahhk@gmail.com';
 
   const navItems = [
     { name: 'Packages', href: '#packages' },
@@ -81,7 +83,10 @@ const Header: React.FC = () => {
                   <div className="relative group">
                     <button className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
                       <User className="h-5 w-5 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">{user.user_metadata?.name || user.email}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {user.user_metadata?.name || user.email}
+                      </span>
+                      {isAdmin && <Shield className="h-4 w-4 text-red-600" />}
                     </button>
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                       <div className="py-2">
@@ -91,15 +96,16 @@ const Header: React.FC = () => {
                         >
                           Dashboard
                         </button>
+                        {isAdmin && (
+                          <button 
+                            onClick={() => navigate('/admin')}
+                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                          >
+                            <Shield className="h-4 w-4" />
+                            <span>Admin Panel</span>
+                          </button>
+                        )}
                         <hr className="my-1" />
-                      {user.user_metadata?.is_admin && (
-                        <button 
-                          onClick={() => navigate('/admin')}
-                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Admin Panel
-                        </button>
-                      )}
                         <button
                           onClick={signOut}
                           className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
@@ -123,6 +129,13 @@ const Header: React.FC = () => {
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     Sign Up
+                  </button>
+                  <button
+                    onClick={() => handleAuthClick('admin')}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Admin</span>
                   </button>
                 </div>
               )}
@@ -165,6 +178,13 @@ const Header: React.FC = () => {
                     className="block w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center"
                   >
                     Sign Up
+                  </button>
+                  <button
+                    onClick={() => handleAuthClick('admin')}
+                    className="block w-full py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-center flex items-center justify-center space-x-1"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Admin Access</span>
                   </button>
                 </div>
               )}

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { X, Calendar, Users, IndianRupee, CreditCard } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Calendar, Users, IndianRupee, CreditCard, MapPin, Clock } from 'lucide-react';
 import { TrekPackage } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBookings } from '../../hooks/useBookings';
+import { getAvailableDates } from '../../lib/admin';
 
 interface BookingModalProps {
   package: TrekPackage;
@@ -12,6 +13,7 @@ interface BookingModalProps {
 const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) => {
   const { user } = useAuth();
   const { createBooking } = useBookings();
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
   const [bookingData, setBookingData] = useState({
     startDate: '',
     groupSize: 1,
@@ -19,6 +21,21 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
   });
   const [currentStep, setCurrentStep] = useState<'details' | 'payment' | 'confirmation'>('details');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [bookingReference, setBookingReference] = useState<string>('');
+
+  useEffect(() => {
+    fetchAvailableDates();
+  }, [pkg.id]);
+
+  const fetchAvailableDates = async () => {
+    try {
+      const dates = await getAvailableDates(pkg.id);
+      setAvailableDates(dates);
+    } catch (error) {
+      console.error('Error fetching available dates:', error);
+    }
+  };
 
   const totalAmount = bookingData.groupSize * pkg.price;
 
@@ -31,6 +48,7 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
 
   const handleBooking = async () => {
     setLoading(true);
+    setError(null);
     
     try {
       if (!user) throw new Error('User must be logged in');
@@ -46,9 +64,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
         payment_status: 'pending'
       });
       
-      // In a real app, integrate with payment gateway here
-      // For demo, we'll simulate successful payment
-      setTimeout(async () => {
+      // Generate booking reference
+      const reference = `TRK${Date.now().toString().slice(-8).toUpperCase()}`;
+      setBookingReference(reference);
+      
+      // Simulate payment processing
+      setTimeout(() => {
         setCurrentStep('confirmation');
         setLoading(false);
       }, 2000);
@@ -64,20 +85,58 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold mb-4">Booking Details</h3>
+        
+        {/* Package Summary */}
+        <div className="bg-gray-50 p-4 rounded-lg mb-6">
+          <div className="flex items-center space-x-4">
+            <img 
+              src={pkg.images[0]} 
+              alt={pkg.title}
+              className="w-16 h-16 rounded-lg object-cover"
+            />
+            <div>
+              <h4 className="font-semibold text-gray-900">{pkg.title}</h4>
+              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center space-x-1">
+                  <MapPin className="h-4 w-4" />
+                  <span>{pkg.location}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{pkg.duration} days</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date
+              Select Available Date
             </label>
-            <input
-              type="date"
+            <select
               name="startDate"
               value={bookingData.startDate}
               onChange={handleInputChange}
-              min={new Date().toISOString().split('T')[0]}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
-            />
+            >
+              <option value="">Choose a date...</option>
+              {availableDates.map((date) => (
+                <option key={date} value={date}>
+                  {new Date(date).toLocaleDateString('en-IN', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </option>
+              ))}
+            </select>
+            {availableDates.length === 0 && (
+              <p className="text-sm text-red-600 mt-1">No available dates currently</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -125,12 +184,20 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
         </div>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
+
       <button
         onClick={() => setCurrentStep('payment')}
-        disabled={!bookingData.startDate || !user}
+        disabled={!bookingData.startDate || !user || availableDates.length === 0}
         className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium"
       >
-        {!user ? 'Please sign in to continue' : 'Proceed to Payment'}
+        {!user ? 'Please sign in to continue' : 
+         availableDates.length === 0 ? 'No available dates' :
+         'Proceed to Payment'}
       </button>
     </div>
   );
@@ -227,19 +294,44 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
         <h3 className="text-2xl font-bold text-gray-900 mb-2">Booking Confirmed!</h3>
         <p className="text-gray-600">Your trekking adventure has been successfully booked.</p>
       </div>
-      <div className="bg-gray-50 p-4 rounded-lg text-left">
-        <h4 className="font-semibold mb-2">Booking Details</h4>
-        <div className="space-y-1 text-sm text-gray-700">
-          <p><strong>Package:</strong> {pkg.title}</p>
-          <p><strong>Date:</strong> {bookingData.startDate}</p>
-          <p><strong>Group Size:</strong> {bookingData.groupSize} {bookingData.groupSize === 1 ? 'person' : 'people'}</p>
-          <p><strong>Total Amount:</strong> ₹{totalAmount.toLocaleString()}</p>
-          <p><strong>Booking ID:</strong> TRK{Date.now()}</p>
+      <div className="bg-gray-50 p-6 rounded-lg text-left">
+        <h4 className="font-semibold mb-4 text-center">Booking Details</h4>
+        <div className="space-y-3 text-sm text-gray-700">
+          <div className="flex justify-between">
+            <span className="font-medium">Package:</span>
+            <span>{pkg.title}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-medium">Date:</span>
+            <span>{new Date(bookingData.startDate).toLocaleDateString('en-IN', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-medium">Group Size:</span>
+            <span>{bookingData.groupSize} {bookingData.groupSize === 1 ? 'person' : 'people'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-medium">Total Amount:</span>
+            <span className="font-bold text-green-600">₹{totalAmount.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between border-t pt-2">
+            <span className="font-medium">Booking Reference:</span>
+            <span className="font-mono font-bold text-blue-600">{bookingReference}</span>
+          </div>
         </div>
       </div>
-      <p className="text-sm text-gray-600">
-        You will receive a confirmation email shortly with detailed instructions and preparation guidelines.
-      </p>
+      <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+        <p className="text-sm text-green-800">
+          <strong>What's Next?</strong><br/>
+          • You will receive confirmation via WhatsApp and email shortly<br/>
+          • Our team will contact you 48 hours before the trek<br/>
+          • Check your dashboard for booking details and updates
+        </p>
+      </div>
       <button
         onClick={onClose}
         className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
