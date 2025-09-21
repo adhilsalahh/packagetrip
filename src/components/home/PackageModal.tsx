@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, MapPin, Clock, Users, Star, IndianRupee, Calendar, Check, Heart, Share2 } from 'lucide-react';
+import { X, MapPin, Clock, Users, Star, IndianRupee, Calendar, Check, Heart, Share2, Camera, Utensils, Mountain } from 'lucide-react';
 import { TrekPackage } from '../../types';
 import BookingModal from './BookingModal';
 
@@ -125,6 +125,105 @@ const PackageModal: React.FC<PackageModalProps> = ({ package: pkg, onClose }) =>
                 <div>
                   <h3 className="text-xl font-semibold mb-3">About This Trek</h3>
                   <p className="text-gray-700 leading-relaxed">{pkg.description}</p>
+                </div>
+
+                {/* Photo Gallery Section */}
+                <div>
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <Camera className="h-6 w-6 mr-2 text-green-600" />
+                    Photo Gallery
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {pkg.images.map((image, index) => (
+                      <div key={index} className="relative group cursor-pointer">
+                        <img
+                          src={image}
+                          alt={`${pkg.title} ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg transition-transform group-hover:scale-105"
+                          onClick={() => setCurrentImageIndex(index)}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity rounded-lg"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Food & Dining Section */}
+                <div>
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <Utensils className="h-6 w-6 mr-2 text-green-600" />
+                    Food & Dining
+                  </h3>
+                  <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-orange-800 mb-3">Meal Schedule</h4>
+                        <ul className="space-y-2 text-orange-700">
+                          <li className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Breakfast:</strong> 7:00 AM - 8:30 AM</span>
+                          </li>
+                          <li className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Lunch:</strong> 12:30 PM - 1:30 PM</span>
+                          </li>
+                          <li className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Dinner:</strong> 7:30 PM - 9:00 PM</span>
+                          </li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-orange-800 mb-3">Local Cuisine</h4>
+                        <ul className="space-y-1 text-orange-700">
+                          <li>• Traditional Kerala meals</li>
+                          <li>• Fresh local vegetables</li>
+                          <li>• Spiced tea and coffee</li>
+                          <li>• Regional specialties</li>
+                          <li>• Vegetarian & non-veg options</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trek Highlights */}
+                <div>
+                  <h3 className="text-xl font-semibold mb-4 flex items-center">
+                    <Mountain className="h-6 w-6 mr-2 text-green-600" />
+                    Trek Highlights
+                  </h3>
+                  <div className="bg-green-50 p-6 rounded-lg border border-green-200">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-semibold text-green-800 mb-3">Scenic Attractions</h4>
+                        <ul className="space-y-1 text-green-700">
+                          <li>• Panoramic mountain views</li>
+                          <li>• Pristine waterfalls</li>
+                          <li>• Dense forest trails</li>
+                          <li>• Wildlife spotting opportunities</li>
+                          <li>• Sunrise/sunset viewpoints</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-green-800 mb-3">Best Times</h4>
+                        <ul className="space-y-2 text-green-700">
+                          <li className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Start:</strong> 6:00 AM daily</span>
+                          </li>
+                          <li className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Peak hours:</strong> 8:00 AM - 4:00 PM</span>
+                          </li>
+                          <li className="flex items-center space-x-2">
+                            <Clock className="h-4 w-4" />
+                            <span><strong>Return:</strong> By 6:00 PM</span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-6">

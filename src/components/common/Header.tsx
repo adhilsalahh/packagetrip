@@ -96,15 +96,6 @@ const Header: React.FC = () => {
                         >
                           Dashboard
                         </button>
-                        {isAdmin && (
-                          <button 
-                            onClick={() => navigate('/admin')}
-                            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
-                          >
-                            <Shield className="h-4 w-4" />
-                            <span>Admin Panel</span>
-                          </button>
-                        )}
                         <hr className="my-1" />
                         <button
                           onClick={signOut}
@@ -129,13 +120,6 @@ const Header: React.FC = () => {
                     className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     Sign Up
-                  </button>
-                  <button
-                    onClick={() => handleAuthClick('admin')}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-1"
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span>Admin</span>
                   </button>
                 </div>
               )}
@@ -178,13 +162,6 @@ const Header: React.FC = () => {
                     className="block w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center"
                   >
                     Sign Up
-                  </button>
-                  <button
-                    onClick={() => handleAuthClick('admin')}
-                    className="block w-full py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-center flex items-center justify-center space-x-1"
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span>Admin Access</span>
                   </button>
                 </div>
               )}

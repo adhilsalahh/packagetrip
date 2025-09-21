@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Calendar, 
@@ -11,7 +12,8 @@ import {
   MessageSquare,
   Mail,
   Phone,
-  AlertCircle
+  AlertCircle,
+  Mountain
 } from 'lucide-react';
 import { AdminStats, BookingWithDetails } from '../../types/admin';
 import { getAdminStats, getAllBookingsDetailed, updateBookingStatusWithNotification, getMessageStats } from '../../lib/admin';
@@ -20,6 +22,7 @@ import PackageAvailabilityManager from './PackageAvailabilityManager';
 import PackageListAdmin from './PackageListAdmin';
 
 const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [messageStats, setMessageStats] = useState<any>(null);
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
@@ -288,6 +291,28 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Admin Header */}
+      <div className="bg-red-600 text-white px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Mountain className="h-8 w-8" />
+            <div>
+              <h1 className="text-xl font-bold">Kerala Trekking - Admin Panel</h1>
+              <p className="text-red-200 text-sm">Administrative Dashboard</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-red-200">Welcome, Administrator</span>
+            <button
+              onClick={() => navigate('/')}
+              className="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg transition-colors"
+            >
+              Back to Site
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">

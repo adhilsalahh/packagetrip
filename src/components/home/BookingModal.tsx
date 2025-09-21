@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Users, IndianRupee, CreditCard, MapPin, Clock } from 'lucide-react';
+import { X, Calendar, Users, IndianRupee, CreditCard, MapPin, Clock, AlertCircle, CheckCircle, QrCode } from 'lucide-react';
+import QRCodeLib from 'qrcode';
 import { TrekPackage } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBookings } from '../../hooks/useBookings';
@@ -23,11 +24,24 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bookingReference, setBookingReference] = useState<string>('');
+  const [showPaymentConfirmation, setShowPaymentConfirmation] = useState(false);
+  const [paymentData, setPaymentData] = useState({
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardholderName: ''
+  });
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 
   useEffect(() => {
     fetchAvailableDates();
   }, [pkg.id]);
 
+  useEffect(() => {
+    if (showPaymentConfirmation) {
+      generateQRCode();
+    }
+  }, [showPaymentConfirmation, totalAmount]);
   const fetchAvailableDates = async () => {
     try {
       const dates = await getAvailableDates(pkg.id);
@@ -37,6 +51,22 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
     }
   };
 
+  const generateQRCode = async () => {
+    try {
+      const upiString = `upi://pay?pa=keralatrekking@paytm&pn=Kerala Trekking&am=${totalAmount}&cu=INR&tn=Booking for ${pkg.title}`;
+      const qrUrl = await QRCodeLib.toDataURL(upiString, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#059669',
+          light: '#FFFFFF'
+        }
+      });
+      setQrCodeUrl(qrUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  };
   const totalAmount = bookingData.groupSize * pkg.price;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -47,6 +77,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
   };
 
   const handleBooking = async () => {
+    if (!showPaymentConfirmation) {
+      setShowPaymentConfirmation(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
@@ -81,6 +116,12 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
     }
   };
 
+  const handlePaymentInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPaymentData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
   const renderDetailsStep = () => (
     <div className="space-y-6">
       <div>
@@ -206,11 +247,14 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
     <div className="space-y-6">
       <div>
         <h3 className="text-xl font-semibold mb-4">Payment Details</h3>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-blue-800 text-sm">
-            <strong>Note:</strong> This is a demo implementation. In production, integrate with Stripe, Razorpay, or other payment gateways.
-          </p>
-        </div>
+
+        {!showPaymentConfirmation ? (
+          <>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <p className="text-blue-800 text-sm">
+                <strong>Note:</strong> This is a demo implementation. In production, integrate with Stripe, Razorpay, or other payment gateways.
+              </p>
+            </div>
 
         <div className="space-y-4">
           <div>
@@ -219,6 +263,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
             </label>
             <input
               type="text"
+              name="cardNumber"
+              value={paymentData.cardNumber}
+              onChange={handlePaymentInputChange}
               placeholder="1234 5678 9012 3456"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
@@ -230,6 +277,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
               </label>
               <input
                 type="text"
+                name="expiryDate"
+                value={paymentData.expiryDate}
+                onChange={handlePaymentInputChange}
                 placeholder="MM/YY"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
@@ -240,6 +290,9 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
               </label>
               <input
                 type="text"
+                name="cvv"
+                value={paymentData.cvv}
+                onChange={handlePaymentInputChange}
                 placeholder="123"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
@@ -251,11 +304,88 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
             </label>
             <input
               type="text"
+              name="cardholderName"
+              value={paymentData.cardholderName}
+              onChange={handlePaymentInputChange}
               placeholder="John Doe"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           </div>
         </div>
+          </>
+        ) : (
+          <div className="space-y-6">
+            {/* Payment Confirmation */}
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-lg font-semibold text-yellow-800 mb-2">Confirm Your Payment</h4>
+                  <p className="text-yellow-700 mb-4">
+                    Please review your booking details and payment information before proceeding.
+                  </p>
+                  
+                  <div className="bg-white p-4 rounded-lg border border-yellow-200">
+                    <h5 className="font-semibold text-gray-900 mb-3">Payment Summary</h5>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Package:</span>
+                        <span className="font-medium">{pkg.title}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Date:</span>
+                        <span className="font-medium">{new Date(bookingData.startDate).toLocaleDateString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Group Size:</span>
+                        <span className="font-medium">{bookingData.groupSize} people</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Card ending in:</span>
+                        <span className="font-medium">****{paymentData.cardNumber.slice(-4)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-lg border-t pt-2">
+                        <span>Total Amount:</span>
+                        <span className="text-green-600">₹{totalAmount.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* QR Code Payment Option */}
+            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6">
+              <div className="text-center">
+                <QrCode className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                <h4 className="text-lg font-semibold text-green-800 mb-2">Alternative: Pay with UPI</h4>
+                <p className="text-green-700 mb-4">Scan the QR code below to pay via UPI</p>
+                
+                <div className="bg-white p-6 rounded-lg border-2 border-green-300 inline-block">
+                  {qrCodeUrl ? (
+                    <img 
+                      src={qrCodeUrl} 
+                      alt="UPI Payment QR Code" 
+                      className="w-48 h-48 rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-48 h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <QrCode className="h-16 w-16 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600">Generating QR Code...</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="mt-4 text-sm text-green-700">
+                  <p><strong>UPI ID:</strong> keralatrekking@paytm</p>
+                  <p><strong>Amount:</strong> ₹{totalAmount.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">
@@ -267,7 +397,13 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
 
       <div className="flex space-x-4">
         <button
-          onClick={() => setCurrentStep('details')}
+          onClick={() => {
+            if (showPaymentConfirmation) {
+              setShowPaymentConfirmation(false);
+            } else {
+              setCurrentStep('details');
+            }
+          }}
           className="flex-1 py-3 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
         >
           Back
@@ -277,7 +413,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ package: pkg, onClose }) =>
           disabled={loading}
           className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors font-medium"
         >
-          {loading ? 'Processing...' : 'Complete Payment'}
+          {loading ? 'Processing...' : 
+           showPaymentConfirmation ? 'Confirm & Pay' : 'Review Payment'}
         </button>
       </div>
     </div>
