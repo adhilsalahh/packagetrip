@@ -189,9 +189,9 @@ export const authenticateAdmin = async (email: string, password: string) => {
     throw new Error('Invalid credentials');
   }
 
-  // In production, use proper password hashing verification
-  // For demo, we'll use simple comparison
-  if (email === 'adhilsalahhk@gmail.com' && password === 'As12345') {
+  // SECURITY NOTE: In production, use proper password hashing (bcrypt, argon2, etc.)
+  // This is a demo implementation - never store plain text passwords in production
+  if (email === 'varthripaadikkam@gmail.com' && password === 'A123456') {
     return data;
   }
 

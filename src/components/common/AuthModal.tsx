@@ -11,8 +11,8 @@ interface AuthModalProps {
 const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) => {
   const { signIn, signUp, adminSignIn } = useAuth();
   const [formData, setFormData] = useState({
-    email: mode === 'admin' ? 'adhilsalahhk@gmail.com' : '',
-    password: mode === 'admin' ? 'As12345' : '',
+    email: mode === 'admin' ? 'varthripaadikkam@gmail.com' : '',
+    password: mode === 'admin' ? 'A123456' : '',
     name: '',
     phone: '',
     confirmPassword: ''

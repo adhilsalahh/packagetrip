@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: session.user.email!,
             name: session.user.user_metadata?.name || session.user.email!,
             phone: session.user.user_metadata?.phone || null,
-            is_admin: session.user.email === 'adhilsalahhk@gmail.com'
+            is_admin: session.user.email === 'varthripaadikkam@gmail.com'
           });
         
         if (error) {

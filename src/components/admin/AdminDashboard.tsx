@@ -17,13 +17,14 @@ import { AdminStats, BookingWithDetails } from '../../types/admin';
 import { getAdminStats, getAllBookingsDetailed, updateBookingStatusWithNotification, getMessageStats } from '../../lib/admin';
 import BookingManagement from './BookingManagement';
 import PackageAvailabilityManager from './PackageAvailabilityManager';
+import PackageListAdmin from './PackageListAdmin';
 
 const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [messageStats, setMessageStats] = useState<any>(null);
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'availability' | 'messages'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'packages' | 'availability' | 'messages'>('overview');
 
   useEffect(() => {
     fetchData();
@@ -300,6 +301,7 @@ const AdminDashboard: React.FC = () => {
             {[
               { id: 'overview', label: 'Overview', icon: TrendingUp },
               { id: 'bookings', label: 'Booking Management', icon: Calendar },
+              { id: 'packages', label: 'Package Management', icon: Package },
               { id: 'availability', label: 'Package Availability', icon: Package },
               { id: 'messages', label: 'Message Center', icon: MessageSquare }
             ].map((tab) => (
@@ -328,6 +330,7 @@ const AdminDashboard: React.FC = () => {
             onRefresh={fetchData}
           />
         )}
+        {activeTab === 'packages' && <PackageListAdmin />}
         {activeTab === 'availability' && <PackageAvailabilityManager />}
         {activeTab === 'messages' && renderMessages()}
       </div>
