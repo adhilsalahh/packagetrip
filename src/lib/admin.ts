@@ -183,9 +183,13 @@ export const authenticateAdmin = async (email: string, password: string) => {
     .select('*')
     .eq('email', email)
     .eq('is_active', true)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    throw new Error('Database error during authentication');
+  }
+  
+  if (!data) {
     throw new Error('Invalid credentials');
   }
 

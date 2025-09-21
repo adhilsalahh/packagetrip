@@ -268,7 +268,7 @@ export const isInWishlist = async (userId: string, packageId: string): Promise<b
     .select('id')
     .eq('user_id', userId)
     .eq('package_id', packageId)
-    .single();
+    .maybeSingle();
 
   if (error && error.code !== 'PGRST116') throw error;
   return !!data;
