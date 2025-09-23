@@ -9,10 +9,10 @@ interface AuthModalProps {
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) => {
-  const { signIn, signUp, adminSignIn } = useAuth();
+  const { signIn, signUp } = useAuth();
   const [formData, setFormData] = useState({
-    email: mode === 'admin' ? 'varthripaadikkam@gmail.com' : '',
-    password: mode === 'admin' ? 'A123456' : '',
+    email: '',
+    password: '',
     name: '',
     phone: '',
     confirmPassword: ''
@@ -28,14 +28,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
     setLoading(true);
 
     try {
-      if (mode === 'admin') {
-        await adminSignIn(formData.email, formData.password);
-      } else if (mode === 'signup') {
+      if (mode === 'signup') {
         if (formData.password !== formData.confirmPassword) {
           throw new Error('Passwords do not match');
         }
         await signUp(formData.email, formData.password, formData.name, formData.phone);
       } else {
+        // Both regular signin and admin signin use the same method
+        // Admin status is checked after successful authentication
         await signIn(formData.email, formData.password);
       }
       onClose();
@@ -144,8 +144,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
               value={formData.email}
               onChange={handleInputChange}
               required
-              disabled={mode === 'admin'}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your email"
             />
           </div>
@@ -161,8 +160,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ mode, onClose, onSwitchMode }) =>
                 value={formData.password}
                 onChange={handleInputChange}
                 required
-                disabled={mode === 'admin'}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:bg-gray-100"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Enter your password"
               />
               <button

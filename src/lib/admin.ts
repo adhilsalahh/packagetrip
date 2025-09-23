@@ -176,30 +176,20 @@ export const bookAvailableDate = async (packageId: string, date: string): Promis
   if (error) throw error;
 };
 
-// Admin authentication
-export const authenticateAdmin = async (email: string, password: string) => {
+// Check if user is admin after authentication
+export const checkAdminStatus = async (userId: string): Promise<boolean> => {
   const { data, error } = await supabase
-    .from('admin_users')
-    .select('*')
-    .eq('email', email)
-    .eq('is_active', true)
-    .maybeSingle();
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', userId)
+    .single();
 
   if (error) {
-    throw new Error('Database error during authentication');
-  }
-  
-  if (!data) {
-    throw new Error('Invalid credentials');
+    console.error('Error checking admin status:', error);
+    return false;
   }
 
-  // SECURITY NOTE: In production, use proper password hashing (bcrypt, argon2, etc.)
-  // This is a demo implementation - never store plain text passwords in production
-  if (email === 'varthripaadikkam@gmail.com' && password === 'A123456') {
-    return data;
-  }
-
-  throw new Error('Invalid credentials');
+  return data?.is_admin === true;
 };
 
 // Get booking with message logs

@@ -5,10 +5,10 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { adminSignIn, user } = useAuth();
+  const { signIn, user } = useAuth();
   const [formData, setFormData] = useState({
-    email: 'varthripaadikkam@gmail.com',
-    password: 'A123456'
+    email: '',
+    password: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ const AdminLogin: React.FC = () => {
 
   // Redirect if already logged in as admin
   React.useEffect(() => {
-    if (user?.email === 'varthripaadikkam@gmail.com') {
+    if (user?.is_admin) {
       navigate('/admin/dashboard');
     }
   }, [user, navigate]);
@@ -27,8 +27,11 @@ const AdminLogin: React.FC = () => {
     setLoading(true);
 
     try {
-      await adminSignIn(formData.email, formData.password);
-      navigate('/admin/dashboard');
+      // Sign in with Supabase
+      await signIn(formData.email, formData.password);
+      
+      // Check if user is admin after successful login
+      // The redirect will happen automatically via useEffect when user state updates
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -87,8 +90,8 @@ const AdminLogin: React.FC = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                disabled
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="Enter admin email"
               />
             </div>
@@ -103,8 +106,8 @@ const AdminLogin: React.FC = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  disabled
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
+                  required
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Enter password"
                 />
                 <button

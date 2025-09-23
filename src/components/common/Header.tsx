@@ -16,7 +16,7 @@ const Header: React.FC = () => {
     setShowAuthModal(true);
   };
 
-  const isAdmin = user?.email === 'adhilsalahhk@gmail.com';
+  const isAdmin = user?.is_admin === true;
 
   const navItems = [
     { name: 'Packages', href: '#packages' },

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import { authenticateAdmin } from '../lib/admin';
+import { checkAdminStatus } from '../lib/admin';
 
 interface AuthContextType {
   user: User | null;
@@ -10,7 +10,6 @@ interface AuthContextType {
   signUp: (email: string, password: string, name: string, phone?: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  adminSignIn: (email: string, password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: session.user.email!,
             name: session.user.user_metadata?.name || session.user.email!,
             phone: session.user.user_metadata?.phone || null,
-            is_admin: session.user.email === 'varthripaadikkam@gmail.com'
+            is_admin: false // Admin status should be set manually in the database
           });
         
         if (error) {
@@ -82,18 +81,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (error) throw error;
   };
 
-  const adminSignIn = async (email: string, password: string) => {
-    try {
-      // First authenticate with admin credentials
-      await authenticateAdmin(email, password);
-      
-      // Then sign in with Supabase
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    } catch (error) {
-      throw error;
-    }
-  };
 
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -107,7 +94,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signIn,
     signOut,
-    adminSignIn
   };
 
   return (
