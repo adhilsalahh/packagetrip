@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn, user, loading: authLoading } = useAuth();
+  const { signIn, user, loading: authLoading, initialized } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -17,7 +17,7 @@ const AdminLogin: React.FC = () => {
 
   // Redirect if already logged in as admin
   React.useEffect(() => {
-    if (user?.is_admin) {
+    if (initialized && user?.is_admin) {
       navigate('/admin/dashboard');
     }
   }, [user, navigate]);
@@ -29,12 +29,17 @@ const AdminLogin: React.FC = () => {
     setLoading(true);
 
     try {
-      await signIn(formData.email, formData.password);
+      const { user: signedInUser, error: signInError } = await signIn(formData.email, formData.password);
+      
+      if (signInError) {
+        throw signInError;
+      }
+      
       setSuccess('Authentication successful! Checking admin privileges...');
       
       // Wait a moment for user state to update, then check admin status
       setTimeout(() => {
-        if (user?.is_admin) {
+        if (signedInUser?.user_metadata?.is_admin || user?.is_admin) {
           navigate('/admin/dashboard');
         } else {
           setError('Access denied. This account does not have administrator privileges.');
@@ -69,12 +74,14 @@ const AdminLogin: React.FC = () => {
     }));
   };
 
-  if (authLoading) {
+  if (authLoading || !initialized) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 to-red-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">
+            {!initialized ? 'Initializing...' : 'Loading...'}
+          </p>
         </div>
       </div>
     );

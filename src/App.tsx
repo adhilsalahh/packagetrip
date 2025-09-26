@@ -11,22 +11,25 @@ import AdminLogin from './components/admin/AdminLogin';
 import { useAuth } from './contexts/AuthContext';
 
 const AppContent: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, initialized } = useAuth();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isAdmin = user?.is_admin === true;
 
-  // Show loading while checking authentication
-  if (loading) {
+  // Show loading while initializing authentication
+  if (loading || !initialized) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">
+            {!initialized ? 'Initializing...' : 'Loading...'}
+          </p>
         </div>
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {!isAdminRoute && <Header />}

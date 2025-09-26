@@ -18,6 +18,43 @@ export interface SignInData {
   password: string;
 }
 
+// Helper function to safely get session
+const getSession = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.warn('Session retrieval error:', error);
+      return null;
+    }
+    return session;
+  } catch (error) {
+    console.warn('Failed to get session:', error);
+    return null;
+  }
+};
+
+// Helper function to safely get user
+const getUser = async () => {
+  try {
+    // First check if we have a session
+    const session = await getSession();
+    if (!session) {
+      return null;
+    }
+
+    // Then get user data
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) {
+      console.warn('User retrieval error:', error);
+      return null;
+    }
+    return user;
+  } catch (error) {
+    console.warn('Failed to get user:', error);
+    return null;
+  }
+};
+
 // Enhanced sign up with better error handling
 export const signUpUser = async ({ email, password, name, phone }: SignUpData) => {
   try {
@@ -102,22 +139,15 @@ export const signOutUser = async () => {
   }
 };
 
-// Get current authenticated user
+// Get current authenticated user with proper session handling
 export const getCurrentUser = async () => {
-  try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) throw error;
-    return user;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
+  return await getUser();
 };
 
 // Get current user profile
 export const getCurrentUserProfile = async (): Promise<User | null> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser();
     
     if (!user) return null;
 
@@ -145,7 +175,7 @@ export const checkIsAdmin = async (userId?: string): Promise<boolean> => {
     let targetUserId = userId;
     
     if (!targetUserId) {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getUser();
       if (!user) return false;
       targetUserId = user.id;
     }
