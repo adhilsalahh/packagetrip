@@ -6,6 +6,8 @@ import Hero from './components/home/Hero';
 import PackagesList from './components/home/PackagesList';
 import Footer from './components/home/Footer';
 import EnhancedUserDashboard from './components/user/EnhancedUserDashboard';
+import EnhancedUserProfile from './components/user/EnhancedUserProfile';
+import AuthPage from './components/auth/AuthPage';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminLogin from './components/admin/AdminLogin';
 import { useAuth } from './contexts/AuthContext';
@@ -14,6 +16,7 @@ const AppContent: React.FC = () => {
   const { user, loading, initialized } = useAuth();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isAuthRoute = location.pathname === '/auth';
   const isAdmin = user?.is_admin === true;
 
   // Show loading while initializing authentication
@@ -32,7 +35,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {!isAdminRoute && <Header />}
+      {!isAdminRoute && !isAuthRoute && <Header />}
       <main>
         <Routes>
           <Route path="/" element={
@@ -41,14 +44,16 @@ const AppContent: React.FC = () => {
               <PackagesList />
             </>
           } />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/dashboard" element={<EnhancedUserDashboard />} />
+          <Route path="/profile" element={<EnhancedUserProfile />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={
             isAdmin ? <AdminDashboard /> : <AdminLogin />
           } />
         </Routes>
       </main>
-      {!isAdminRoute && <Footer />}
+      {!isAdminRoute && !isAuthRoute && <Footer />}
     </div>
   );
 };

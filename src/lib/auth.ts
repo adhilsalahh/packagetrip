@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { User } from '../types';
+import { logUserActivity } from './userActivity';
 
 export interface AuthError extends Error {
   status?: number;
@@ -94,6 +95,18 @@ export const signUpUser = async ({ email, password, name, phone }: SignUpData) =
       throw error;
     }
 
+    // Log successful registration attempt
+    if (data.user) {
+      try {
+        await logUserActivity(data.user.id, 'registration_attempt', 'User completed registration form', {
+          email: email.toLowerCase().trim(),
+          has_phone: !!phone
+        });
+      } catch (logError) {
+        console.warn('Failed to log registration activity:', logError);
+      }
+    }
+
     return data;
   } catch (error: any) {
     console.error('Sign up error:', error);
@@ -121,6 +134,18 @@ export const signInUser = async ({ email, password }: SignInData) => {
       throw error;
     }
 
+    // Log successful sign in
+    if (data.user) {
+      try {
+        await logUserActivity(data.user.id, 'sign_in', 'User signed in successfully', {
+          email: email.toLowerCase().trim(),
+          sign_in_method: 'email_password'
+        });
+      } catch (logError) {
+        console.warn('Failed to log sign in activity:', logError);
+      }
+    }
+
     return data;
   } catch (error: any) {
     console.error('Sign in error:', error);
@@ -131,8 +156,20 @@ export const signInUser = async ({ email, password }: SignInData) => {
 // Sign out user
 export const signOutUser = async () => {
   try {
+    // Get current user before signing out
+    const { data: { user } } = await supabase.auth.getUser();
+    
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+
+    // Log sign out activity
+    if (user) {
+      try {
+        await logUserActivity(user.id, 'sign_out', 'User signed out');
+      } catch (logError) {
+        console.warn('Failed to log sign out activity:', logError);
+      }
+    }
   } catch (error: any) {
     console.error('Sign out error:', error);
     throw error;

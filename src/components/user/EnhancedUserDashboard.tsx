@@ -298,13 +298,22 @@ const EnhancedUserDashboard: React.FC = () => {
                   Welcome back, {user?.user_metadata?.name || 'Trekker'}!
                 </h1>
               </div>
-              <button
-                onClick={signOut}
-                className="flex items-center space-x-2 px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-colors"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Sign Out</span>
-              </button>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-colors"
+                >
+                  <User className="h-5 w-5" />
+                  <span>View Profile</span>
+                </button>
+                <button
+                  onClick={signOut}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-colors"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
             </div>
           </div>
 

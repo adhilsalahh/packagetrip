@@ -12,8 +12,11 @@ const Header: React.FC = () => {
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'admin'>('signin');
 
   const handleAuthClick = (mode: 'signin' | 'signup' | 'admin') => {
-    setAuthMode(mode);
-    setShowAuthModal(true);
+    if (mode === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/auth');
+    }
     setIsMenuOpen(false); // Close mobile menu when opening auth modal
   };
 
@@ -115,6 +118,12 @@ const Header: React.FC = () => {
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
                           My Dashboard
+                        </button>
+                        <button 
+                          onClick={() => navigate('/profile')}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          My Profile
                         </button>
                         {isAdmin && (
                           <button 
